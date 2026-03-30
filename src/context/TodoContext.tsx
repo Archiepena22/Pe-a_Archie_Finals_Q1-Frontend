@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { Todo } from '../types/todo'
 
-const API_BASE = 'http://localhost:5000/api/todos'
+const API_BASE = 'http://localhost:5181/api/todos'
 
 type TodoContextValue = {
   todos: Todo[]
@@ -83,6 +83,7 @@ export const TodoProvider = ({ children }: { children: React.ReactNode }) => {
 
     const created = (await res.json().catch(() => payload)) as Todo
     setTodos((prev) => [...prev, created])
+    setLastSynced(new Date())
     return true
   }, [])
 
@@ -100,6 +101,7 @@ export const TodoProvider = ({ children }: { children: React.ReactNode }) => {
       setTodos((prev) =>
         prev.map((todo) => (todo.id === id ? { ...todo, ...updated } : todo)),
       )
+      setLastSynced(new Date())
       return true
     },
     [],
@@ -110,6 +112,7 @@ export const TodoProvider = ({ children }: { children: React.ReactNode }) => {
     if (!res.ok) return false
 
     setTodos((prev) => prev.filter((todo) => todo.id !== id))
+    setLastSynced(new Date())
     return true
   }, [])
 
