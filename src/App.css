@@ -233,6 +233,40 @@
   color: var(--muted);
 }
 
+.tip-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+}
+
+.tip-list li + li {
+  margin-top: 0.5rem;
+}
+
+.toast {
+  position: fixed;
+  right: 2.5rem;
+  bottom: 2.5rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 0.9rem 1.2rem;
+  border-radius: 14px;
+  font-weight: 500;
+  animation: toast-in 0.2s ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;

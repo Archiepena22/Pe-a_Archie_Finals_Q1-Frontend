@@ -5,6 +5,7 @@ const API_BASE = 'http://localhost:5000/api/todos'
 
 type TodoContextValue = {
   todos: Todo[]
+  lastSynced: Date | null
   fetchTodos: () => Promise<void>
   addTodo: (title: string) => Promise<boolean>
   updateTodo: (id: string, updates: Partial<Pick<Todo, 'title' | 'completed'>>) => Promise<boolean>
@@ -16,16 +17,25 @@ const TodoContext = createContext<TodoContextValue | null>(null)
 
 export const TodoProvider = ({ children }: { children: React.ReactNode }) => {
   const [todos, setTodos] = useState<Todo[]>([])
+  const [lastSynced, setLastSynced] = useState<Date | null>(null)
 
   const fetchTodos = useCallback(async () => {
     const res = await fetch(API_BASE)
     if (!res.ok) return
     const data = (await res.json()) as Todo[]
     setTodos(data)
+    setLastSynced(new Date())
   }, [])
 
   useEffect(() => {
     fetchTodos()
+  }, [fetchTodos])
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      fetchTodos()
+    }, 15000)
+    return () => window.clearInterval(interval)
   }, [fetchTodos])
 
   const addTodo = useCallback(async (title: string) => {
@@ -88,8 +98,16 @@ export const TodoProvider = ({ children }: { children: React.ReactNode }) => {
   )
 
   const value = useMemo(
-    () => ({ todos, fetchTodos, addTodo, updateTodo, deleteTodo, toggleTodo }),
-    [todos, fetchTodos, addTodo, updateTodo, deleteTodo, toggleTodo],
+    () => ({
+      todos,
+      lastSynced,
+      fetchTodos,
+      addTodo,
+      updateTodo,
+      deleteTodo,
+      toggleTodo,
+    }),
+    [todos, lastSynced, fetchTodos, addTodo, updateTodo, deleteTodo, toggleTodo],
   )
 
   return <TodoContext.Provider value={value}>{children}</TodoContext.Provider>
