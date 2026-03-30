@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { Todo } from '../types/todo'
 
 const API_BASE = 'http://localhost:5000/api/todos'
@@ -18,6 +18,7 @@ const TodoContext = createContext<TodoContextValue | null>(null)
 export const TodoProvider = ({ children }: { children: React.ReactNode }) => {
   const [todos, setTodos] = useState<Todo[]>([])
   const [lastSynced, setLastSynced] = useState<Date | null>(null)
+  const pollingRef = useRef<number | null>(null)
 
   const fetchTodos = useCallback(async () => {
     const res = await fetch(API_BASE)
@@ -32,10 +33,34 @@ export const TodoProvider = ({ children }: { children: React.ReactNode }) => {
   }, [fetchTodos])
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      fetchTodos()
-    }, 15000)
-    return () => window.clearInterval(interval)
+    if (!('EventSource' in window)) {
+      pollingRef.current = window.setInterval(fetchTodos, 15000)
+      return () => {
+        if (pollingRef.current) window.clearInterval(pollingRef.current)
+      }
+    }
+
+    const stream = new EventSource(`${API_BASE}/stream`)
+    stream.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data) as Todo[]
+        setTodos(data)
+        setLastSynced(new Date())
+      } catch {
+        // ignore malformed payloads
+      }
+    }
+    stream.onerror = () => {
+      stream.close()
+      if (!pollingRef.current) {
+        pollingRef.current = window.setInterval(fetchTodos, 15000)
+      }
+    }
+
+    return () => {
+      stream.close()
+      if (pollingRef.current) window.clearInterval(pollingRef.current)
+    }
   }, [fetchTodos])
 
   const addTodo = useCallback(async (title: string) => {
