@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:wght@600;700&display=swap');
+
+:root {
+  color-scheme: light;
+  --bg: #f2f1ed;
+  --panel: #ffffff;
+  --text: #171717;
+  --muted: #585553;
+  --brand: #0f766e;
+  --brand-strong: #115e59;
+  --border: #e2dfd6;
+  --danger: #b91c1c;
+  --shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0b0d0f;
+  --panel: #15181c;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --brand: #2dd4bf;
+  --brand-strong: #14b8a6;
+  --border: #262b33;
+  --danger: #f87171;
+  --shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  background: radial-gradient(circle at top, rgba(45, 212, 191, 0.18), transparent 55%),
+    radial-gradient(circle at bottom, rgba(15, 118, 110, 0.2), transparent 50%),
+    var(--bg);
+  color: var(--text);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input {
+  font-family: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
