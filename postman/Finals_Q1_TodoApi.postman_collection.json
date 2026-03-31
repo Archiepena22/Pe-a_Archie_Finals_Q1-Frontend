@@ -1,0 +1,88 @@
+{
+  "info": {
+    "name": "Finals_Q1 Todo API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Todos",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/todos",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "todos"]
+        }
+      }
+    },
+    {
+      "name": "Add Todo",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Review Finals requirements\",\n  \"completed\": false\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/todos",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "todos"]
+        }
+      }
+    },
+    {
+      "name": "Update Todo",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Updated title\",\n  \"completed\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/todos/{{todoId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "todos", "{{todoId}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Todo",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "{{baseUrl}}/api/todos/{{todoId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "todos", "{{todoId}}"]
+        }
+      }
+    },
+    {
+      "name": "Verify Chain",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/todos/verify",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "todos", "verify"]
+        }
+      }
+    },
+    {
+      "name": "Stream Todos (SSE)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/todos/stream",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "todos", "stream"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5182" },
+    { "key": "todoId", "value": "REPLACE_WITH_TODO_ID" }
+  ]
+}

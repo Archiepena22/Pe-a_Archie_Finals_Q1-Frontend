@@ -1,11 +1,18 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
+import { useTodos } from '../hooks/useTodos'
 
 export const Layout = () => {
   const { theme, toggleTheme } = useTheme()
+  const { chainStatus } = useTodos()
 
   return (
     <div className="app-shell">
+      {chainStatus === 'tampered' && (
+        <div className="chain-banner" role="alert">
+          REDACTED/TAMPERED: Blockchain verification failed. Please check the server.
+        </div>
+      )}
       <header className="app-header">
         <div className="brand">
           <span className="brand-mark">?</span>

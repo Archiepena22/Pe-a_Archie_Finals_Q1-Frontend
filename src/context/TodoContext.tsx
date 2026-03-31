@@ -6,6 +6,7 @@ const API_BASE = 'http://localhost:5182/api/todos'
 type TodoContextValue = {
   todos: Todo[]
   lastSynced: Date | null
+  chainStatus: 'unknown' | 'valid' | 'tampered'
   fetchTodos: () => Promise<void>
   addTodo: (title: string) => Promise<boolean>
   updateTodo: (id: string, updates: Partial<Pick<Todo, 'title' | 'completed'>>) => Promise<boolean>
@@ -18,7 +19,9 @@ const TodoContext = createContext<TodoContextValue | null>(null)
 export const TodoProvider = ({ children }: { children: React.ReactNode }) => {
   const [todos, setTodos] = useState<Todo[]>([])
   const [lastSynced, setLastSynced] = useState<Date | null>(null)
+  const [chainStatus, setChainStatus] = useState<'unknown' | 'valid' | 'tampered'>('unknown')
   const pollingRef = useRef<number | null>(null)
+  const ghostTimers = useRef<Map<string, number>>(new Map())
 
   const fetchTodos = useCallback(async () => {
     const res = await fetch(API_BASE)
@@ -31,6 +34,25 @@ export const TodoProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     fetchTodos()
   }, [fetchTodos])
+
+  const verifyChain = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/verify`)
+      if (res.ok) {
+        setChainStatus('valid')
+      } else if (res.status === 409) {
+        setChainStatus('tampered')
+      } else {
+        setChainStatus('unknown')
+      }
+    } catch {
+      setChainStatus('tampered')
+    }
+  }, [])
+
+  useEffect(() => {
+    verifyChain()
+  }, [todos, verifyChain])
 
   useEffect(() => {
     if (!('EventSource' in window)) {
@@ -62,6 +84,27 @@ export const TodoProvider = ({ children }: { children: React.ReactNode }) => {
       if (pollingRef.current) window.clearInterval(pollingRef.current)
     }
   }, [fetchTodos])
+
+  useEffect(() => {
+    const completedIds = new Set(todos.filter((todo) => todo.completed).map((todo) => todo.id))
+
+    for (const todo of todos) {
+      if (!todo.completed) continue
+      if (ghostTimers.current.has(todo.id)) continue
+      const timer = window.setTimeout(() => {
+        ghostTimers.current.delete(todo.id)
+        deleteTodo(todo.id)
+      }, 15000)
+      ghostTimers.current.set(todo.id, timer)
+    }
+
+    for (const [id, timer] of ghostTimers.current.entries()) {
+      if (!completedIds.has(id)) {
+        window.clearTimeout(timer)
+        ghostTimers.current.delete(id)
+      }
+    }
+  }, [todos, deleteTodo])
 
   const addTodo = useCallback(async (title: string) => {
     const trimmed = title.trim()
@@ -129,13 +172,14 @@ export const TodoProvider = ({ children }: { children: React.ReactNode }) => {
     () => ({
       todos,
       lastSynced,
+      chainStatus,
       fetchTodos,
       addTodo,
       updateTodo,
       deleteTodo,
       toggleTodo,
     }),
-    [todos, lastSynced, fetchTodos, addTodo, updateTodo, deleteTodo, toggleTodo],
+    [todos, lastSynced, chainStatus, fetchTodos, addTodo, updateTodo, deleteTodo, toggleTodo],
   )
 
   return <TodoContext.Provider value={value}>{children}</TodoContext.Provider>

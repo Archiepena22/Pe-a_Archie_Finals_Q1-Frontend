@@ -4,13 +4,19 @@ import type { Todo } from '../types/todo'
 import { useTodos } from '../hooks/useTodos'
 import { EditTodoModal } from './EditTodoModal'
 
-export const TodoItem = ({ todo }: { todo: Todo }) => {
+export const TodoItem = ({ todo, canComplete }: { todo: Todo; canComplete: boolean }) => {
   const { deleteTodo, toggleTodo } = useTodos()
   const navigate = useNavigate()
   const [isEditing, setIsEditing] = useState(false)
   const [isWorking, setIsWorking] = useState(false)
+  const [showOrderWarning, setShowOrderWarning] = useState(false)
 
   const handleToggle = async () => {
+    if (!todo.completed && !canComplete) {
+      setShowOrderWarning(true)
+      window.setTimeout(() => setShowOrderWarning(false), 2500)
+      return
+    }
     setIsWorking(true)
     const ok = await toggleTodo(todo.id)
     setIsWorking(false)
@@ -41,6 +47,9 @@ export const TodoItem = ({ todo }: { todo: Todo }) => {
           Delete
         </button>
       </div>
+      {showOrderWarning && (
+        <p className="inline-warning">Complete tasks in order (FIFO).</p>
+      )}
       {isEditing && (
         <EditTodoModal todo={todo} onClose={() => setIsEditing(false)} />
       )}
